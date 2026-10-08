@@ -1,114 +1,106 @@
 #include <iostream>
-#include <cstddef>
 #include <new>
 
-void freeMatrix(int** matrix, size_t rows)
+void deleteMatrix(int **matrix, size_t rows)
 {
-    if (matrix == nullptr)
-    {
+    if (matrix == nullptr) {
         return;
     }
 
-    for (size_t i = 0; i < rows; ++i)
-    {
+    for (size_t i = 0; i < rows; ++i) {
         delete[] matrix[i];
     }
 
     delete[] matrix;
 }
 
-int** createMatrix(size_t rows, size_t cols)
+int **createMatrix(size_t rows, size_t cols)
 {
-    int** matrix = new int*[rows];
+    int **matrix = new int *[rows]();
 
-    size_t i = 0;
-
-    try
-    {
-        for (; i < rows; ++i)
-        {
+    try {
+        for (size_t i = 0; i < rows; ++i) {
             matrix[i] = new int[cols];
         }
-    }
-    catch (const std::bad_alloc&)
-    {
-        freeMatrix(matrix, i);
+    } catch (...) {
+        deleteMatrix(matrix, rows);
         throw;
     }
 
     return matrix;
 }
 
-int main()
+bool readMatrix(int **matrix, size_t rows, size_t cols)
 {
-    size_t rows;
-    size_t cols;
-
-    if (!(std::cin >> rows >> cols))
-    {
-        return 1;
-    }
-
-    int** matrix = nullptr;
-
-    try
-    {
-        matrix = createMatrix(rows, cols);
-    }
-    catch (const std::bad_alloc&)
-    {
-        return 2;
-    }
-
-    for (size_t i = 0; i < rows; ++i)
-    {
-        for (size_t j = 0; j < cols; ++j)
-        {
-            if (!(std::cin >> matrix[i][j]))
-            {
-                freeMatrix(matrix, rows);
-                return 1;
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+            if (!(std::cin >> matrix[i][j])) {
+                return false;
             }
         }
     }
 
-    int** transposed = nullptr;
+    return true;
+}
 
-    try
-    {
-        transposed = createMatrix(cols, rows);
-    }
-    catch (const std::bad_alloc&)
-    {
-        freeMatrix(matrix, rows);
-        return 2;
-    }
+int **transposeMatrix(const int * const *matrix, size_t rows, size_t cols)
+{
+    int **transposed = createMatrix(cols, rows);
 
-    for (size_t i = 0; i < rows; ++i)
-    {
-        for (size_t j = 0; j < cols; ++j)
-        {
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
             transposed[j][i] = matrix[i][j];
         }
     }
 
-    for (size_t i = 0; i < cols; ++i)
-    {
-        for (size_t j = 0; j < rows; ++j)
-        {
-            std::cout << transposed[i][j];
+    return transposed;
+}
 
-            if (j + 1 < rows)
-            {
+void printMatrix(const int * const *matrix, size_t rows, size_t cols)
+{
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+            std::cout << matrix[i][j];
+
+            if (j + 1 != cols) {
                 std::cout << ' ';
             }
         }
 
         std::cout << '\n';
     }
+}
 
-    freeMatrix(matrix, rows);
-    freeMatrix(transposed, cols);
+int main()
+{
+    size_t rows = 0;
+    size_t cols = 0;
+
+    if (!(std::cin >> rows >> cols)) {
+        return 1;
+    }
+
+    int **matrix = nullptr;
+    int **transposed = nullptr;
+
+    try {
+        matrix = createMatrix(rows, cols);
+
+        if (!readMatrix(matrix, rows, cols)) {
+            deleteMatrix(matrix, rows);
+            return 1;
+        }
+
+        transposed = transposeMatrix(matrix, rows, cols);
+        printMatrix(transposed, cols, rows);
+    } catch (const std::bad_alloc &) {
+        deleteMatrix(transposed, cols);
+        deleteMatrix(matrix, rows);
+        return 2;
+    }
+
+    deleteMatrix(transposed, cols);
+    deleteMatrix(matrix, rows);
 
     return 0;
 }
