@@ -33,7 +33,6 @@ int** createMatrix(size_t rows, size_t cols)
     catch (const std::bad_alloc&)
     {
         freeMatrix(matrix, i);
-        delete[] matrix;
         throw;
     }
 
